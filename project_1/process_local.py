@@ -13,7 +13,6 @@ Now modify this code to process a local image and do the following:
 All the above steps should be in one function called process_image()
 """
 
-# TODO: Import OpenCV
 import cv2
 
 # Processes a given image by converting it to grayscale, using scale to scale its size, and
