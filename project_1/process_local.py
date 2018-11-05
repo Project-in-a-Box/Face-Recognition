@@ -13,12 +13,24 @@ Now modify this code to process a local image and do the following:
 All the above steps should be in one function called process_image()
 """
 
-# TODO: Import OpenCV
+# TODO: Import CV2
+import cv2
 
 
 # TODO: Edit this function
-def process_image():
-    return
+def process_image():   
+	CV_GRAYSCALE = 0;
+	img = cv2.imread('geisel.jpg', CV_GRAYSCALE)
+	width = int(img.shape[1]*(0.5))
+	height = int(img.shape[0]*(0.5))
+	recwidth = 100;
+	recheight = 100;
+	recpt1 = ((int(width)/2)-(int(recwidth)/2), (int(height)/2)-(int(recheight)/2));
+	recpt2 = ((int(width)/2)+(int(recwidth)/2), (int(height)/2) + (int(recheight)/2));
+	img = cv2.resize(img, (width ,height), interpolation=cv2.INTER_AREA)
+	outputimg = cv2.rectangle(img, recpt1, recpt2, (255, 255, 255), 5) 
+	cv2.imwrite('geisel-bw-rectangle.jpg', outputimg)
+	return
 
 # Just prints 'Hello World! to screen.
 def hello_world():
@@ -27,7 +39,7 @@ def hello_world():
 
 # TODO: Call process_image function.
 def main():
-    hello_world()
+    process_image()
     return
 
 
