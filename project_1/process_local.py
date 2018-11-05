@@ -18,10 +18,11 @@ import cv2
 # Processes a given image by converting it to grayscale, using scale to scale its size, and
 # draws a rectangle (more like square) with length rect and a certain color. 
 def process_image(imgName = 'geisel.jpg',scale = 0.5, rect = 100, color = (int(255),int(255),int(255))):
+	CV_GRAYSCALE = 0;
 	# Reads the image in grayscale, which is the zero.
-	img = cv2.imread(imgName,0)
+	img = cv2.imread(imgName, CV_GRAYSCALE)
 	
-	# Scales down (or up!) the image that was read
+	# Scales down (or up!) the image dimensions that was read
 	width = int(img.shape[1] * scale)
 	height = int(img.shape[0] * scale)
 
