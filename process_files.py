@@ -12,8 +12,6 @@ import glob
 import os.path
 import shutil
 import os
-import array
-import random
 
 def formatNum(number):
   # Determines if we should append a zero to the left of the string
@@ -55,100 +53,134 @@ def cropFace(img):
   crop_img = cv2.resize(crop_img, (224, 224), interpolation = cv2.INTER_AREA)
    
   return crop_img
+  
+def createFolders(paths):
+  # If none of these folders exist, create them.
+  for path in paths:
+    if (not os.path.exists(path)):
+      os.mkdir(path)
 
+# We want to know if a directory in the format path/## exists.
+def dirNumExist(path, directory):
+  return os.path.exists(path + directory)
+  
+# Returns a value of the first directory that doesn't exist in dataPath/##
+def newestDirectory(dataPath):
+  i = 0;
+  while (i < 100):
+    numStr = formatNum(i)
+    if (not dirNumExist(dataPath, numStr)):
+      return i
+    
+    i = i + 1
+    
+  return -1
+    
+def getPartition(fileNames):
+  validPercent = 0.1
+  testPercent = 0.2
+  trainPercent = 0.7
+  
+  totalCnt = len(fileNames)
+  validCnt = int(totalCnt*validPercent)
+  testCnt = int(totalCnt*testPercent)
+  trainCnt = int(totalCnt*trainPercent)
+  sum = trainCnt + validCnt + testCnt
+  # If our sum is too big, then subtract the difference from trainCnt (Because its the biggest partition).
+  # Else if we're below, add the difference to the smallest paritition. Otherwise return the normal count.
+  if ( sum > totalCnt ):
+    return [validCnt, testCnt, trainCnt - (sum - totalCnt)]
+  elif ( sum < totalCnt):
+    return [validCnt + (totalCnt - sum), testCnt, trainCnt]
+  else:
+    return [validCnt, testCnt, trainCnt]
+    
+def writeFiles(fileNames, path, numStr):
+  croppedNames = []
+  fileI = 0
+  for name in fileNames:
+    img = cv2.imread(name, 0)
+    img = cropFace(img)
+    
+    # If this image isn't a face, move on to the next file name.
+    if img is None:
+      continue
+    else:
+      baseName = numStr + '_' + str(fileI) + '.jpg'
+      croppedNames.append(baseName)
+      cv2.imwrite(path + baseName, img)
+      fileI = fileI + 1
+      
+  return croppedNames
+    
+def partitionFiles(fileNames, path, partitionPaths):
+  cur = 0
+  counter = 0
+  partitionNum = numpy.array([0,0,0])
+  dataCnt = getPartition(fileNames)
+  for name in fileNames:
+    if(counter < dataCnt[cur]):
+      shutil.move(path + name, partitionPaths[cur])
+      counter = counter + 1
+    else:
+      partitionNum[cur] = counter
+      cur = cur + 1
+      shutil.move(path + name, partitionPaths[cur])
+      counter = 0
+
+  partitionNum[cur] = counter + 2
+  return partitionNum
 
 def main():
-  dirCount = 0
-  numStr = formatNum(dirCount)
-  
   imagesDir = os.getcwd() + '/images/'
-  dataDir = imagesDir + 'Data/'
-  
-  fileCount = array.array('i')
-  
+  dataDir = imagesDir + 'Data/'  
   trainDir = dataDir + 'Train/'
   validationDir = dataDir + 'Validation/'
   testDir = dataDir + 'Test/'
+  tempDir = os.getcwd() + '/temp/'
   
-  # If none of these folders exist, create them.
-  if (not os.path.exists(dataDir)):
-    os.mkdir(dataDir)
+  # Creates the directories that will be used for data partitioning.
+  createFolders([dataDir, trainDir, validationDir, testDir, tempDir])
   
-  if (not os.path.exists(trainDir)):
-    os.mkdir(trainDir)
+  # If process_files.py has already ran, we only want to update if images contains new folders. Check data/train/ for the lowest
+  # non-existing folder. 
+  dirCount = newestDirectory(trainDir)
+  numStr = formatNum(dirCount)
+  parNum = numpy.array([0,0,0])
   
-  if (not os.path.exists(validationDir)):
-    os.mkdir(validationDir)
-  
-  if (not os.path.exists(testDir)):
-    os.mkdir(testDir)
-  
-  
-  # While the next ## + 1 directory exists, we will open it and crop the faces out, transfering the editted photos to cleaned.   
-  while (os.path.exists(imagesDir + numStr + '/')):
+  # While the next ## directory exists, we will open it and crop the faces out, transfering the editted photos to cleaned.   
+  while (dirNumExist(imagesDir, numStr)):
+    print("Person " + numStr + ": Getting file names.")
     fileNames = getImgNames(imagesDir, dirCount)
-
-    if(not os.path.exists(dataDir + numStr)):
-      os.mkdir(dataDir + numStr)
     
-    fileI = 0
-    for name in fileNames:
-      img = cv2.imread(name, 0)
-      img = cropFace(img)
+    print("Person " + numStr + ": Creating folders in our partition.")
+    createFolders([trainDir+numStr, validationDir+numStr, testDir+numStr])
     
-      # If this image isn't a face, move on to the next file name.
-      if img is None:
-        continue
-      else:
-        baseName = numStr + '_' + str(fileI) + '.jpg'
-        cv2.imwrite(dataDir + numStr + '/' + baseName, img)
-        fileI = fileI + 1
+    print("Person " + numStr + ": Writing the cropped files to /temp/.")
+    croppedNames = writeFiles(fileNames, tempDir, numStr)
     
-    fileCount.append(fileI)
+    writeDir = [validationDir+numStr, testDir+numStr, trainDir+numStr]
+    
+    print("Person " + numStr + ": Parititioning files in /temp/")
+    parNum = parNum + partitionFiles(croppedNames, tempDir, writeDir)    
+        
+    print(" ")    
     dirCount = dirCount+1
     numStr = formatNum(dirCount)
 
-  validCount = 0;
-  testCount = 0;
-  trainCount = 0;
-
-  for i in range(0, dirCount):
-    numStr = formatNum(i)
-   
-    if (not os.path.exists(trainDir + numStr)):
-      os.mkdir(trainDir + numStr)
-             
-    if (not os.path.exists(validationDir + numStr)):
-      os.mkdir(validationDir + numStr)
-     
-    if (not os.path.exists(testDir + numStr)):
-      os.mkdir(testDir + numStr)         
-         
-    for j in range(0, fileCount[i]):
-      randChoice = random.randint(1,11)
-      curFile = dataDir + numStr + '/' + numStr + '_' + str(j) + '.jpg'
-         
-      if (1 <= randChoice <= 7):
-        shutil.move(curFile, trainDir + numStr)
-        trainCount = trainCount + 1
-      elif (randChoice is 8):
-        shutil.move(curFile, validationDir + numStr)
-        validCount = validCount + 1
-      else:
-        shutil.move(curFile, testDir + numStr)
-        testCount = testCount + 1
-        
-    os.rmdir(dataDir + numStr)
-    
-  totalCount = validCount + testCount + trainCount
-  validPercent = (float)(validCount)/(totalCount) * 100
-  testPercent = (float)(testCount)/(totalCount) * 100
-  trainPercent = (float)(trainCount)/(totalCount) * 100
-  print("Total images: %d" % totalCount)
-  print("Validation Percent: %.1f" % validPercent) 
-  print("Test Percent: %.1f" % testPercent)
-  print("Train Percent: %.1f" % trainPercent)
-
+  os.rmdir(tempDir)
+  totalNum = numpy.sum(parNum)
+  validNum = parNum[0]
+  testNum = parNum[1]
+  trainNum = parNum[2]
+  
+  validPercent = (validNum/float(totalNum))*100
+  testPercent = (testNum/float(totalNum))*100
+  trainPercent = (trainNum/float(totalNum))*100
+  
+  print("Validation Percent: %.2f" % validPercent)
+  print("Test Percent: %.2f" % testPercent)
+  print("Train Percent: %.2f" % trainPercent)
 
 if (__name__ == '__main__'):
   main()
