@@ -22,9 +22,13 @@ def process_image(img, newWidth, newHeight):
 
     # Resizes our image to our newly scaled dimensions
     img = cv2.resize(img, (newWidth, newHeight), interpolation = cv2.INTER_AREA)
+    
+    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-    cv2.rectangle(img,(newWidth/2 - 50,newHeight/2 - 50),(newWidth/2 + 50,newHeight/2 + 50),(255,255,255),2)
-            
+    faces = face_cascade.detectMultiScale(img, 1.15, 4)
+    for (x,y,w,h) in faces:
+        cv2.rectangle(img,(x,y),(x+w,y+h),(255,255,255),2)
+                    
     return img
 
 def main():
