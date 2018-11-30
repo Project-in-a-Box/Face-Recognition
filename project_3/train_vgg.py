@@ -22,23 +22,23 @@ import random
 
 IMG_H, IMG_W, NUM_CHANNELS = 224, 224, 3
 MEAN_PIXEL = np.array([104., 117., 123.]).reshape((1,1,3))
-TRAIN_DIR = '../Data/Train'  #DONE
-VAL_DIR = '../Data/Validation'  #DONE
-NUM_EPOCHS = 5  #TODO
+TRAIN_DIR = '../images/Data/Train'  #DONE
+VAL_DIR = '../images/Data/Validation'  #DONE
+NUM_EPOCHS = 15  #DONE
 BATCH_SIZE = 16
-NUM_CLASSES = 42  #DONE
+NUM_CLASSES = 43  #DONE
 
 
 def load_model():
     # DONE: use VGG16 to load lower layers of vgg16 network and declare it as base_model
     # DONE: use 'imagenet' for weights, include_top=False, (IMG_H, IMG_W, NUM_CHANNELS) for input_shape
-    base_model = applications.vgg16.VGG16(include_top=false, weights='imagenet', input_shape=(IMG_H, IMG_W, NUM_CHANNELS))
+    base_model = VGG16(include_top=False, weights='imagenet', input_shape=(IMG_H, IMG_W, NUM_CHANNELS))
 
     print('Model weights loaded.')
     base_out = base_model.output
     
     # DONE: add a flatten layer, a dense layer with 256 units, a dropout layer with 0.5 rate,
-    x = Flatten(data_format=None)(base_out)
+    x = Flatten()(base_out)
     x = Dense(256, activation='relu')(x)
     x = Dropout(0.5)(x)
     
@@ -51,7 +51,7 @@ def load_model():
 
     # DONE: compile the model, use SGD(lr=1e-4,momentum=0.9) for optimizer, 'categorical_crossentropy' for loss,
     # DONE: and ['accuracy'] for metrics
-    model.compile(optimizer=SGD(1r=1e-4,momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=optimizers.SGD(lr=1e-4,momentum=0.9), loss='categorical_crossentropy', metrics=['accuracy'])
 
     print ('Compile model')
     return model
@@ -93,7 +93,7 @@ def main():
     print 'Load val data:'
     X_val, Y_val = load_data(VAL_DIR)
     # DONE: Train model
-    model.fit(X_train, Y_train, epochs=NUM_EPOCHS, batch_size=BATCH_SIZE)
+    model.fit(X_train, Y_train, validation_data=(X_val,Y_val),epochs=NUM_EPOCHS, batch_size=BATCH_SIZE)
 
     # DONE: Save model weights
     model.save('vgg16_Face_Reg.h5')

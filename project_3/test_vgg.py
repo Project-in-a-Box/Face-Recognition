@@ -13,12 +13,12 @@ import glob, os, cv2
 from keras.models import Model, load_model
 from keras.utils.np_utils import to_categorical
 
-TEST_DIR = '../Data/Test'  #DONE
-MODEL_PATH = '/home/ubuntu/project_3/vgg16_Face_Reg.h5  ' #DONE
+TEST_DIR = '../images/Data/Test'  #DONE
+MODEL_PATH = 'vgg16_Face_Reg.h5' #DONE
 IMG_H, IMG_W, NUM_CHANNELS = 224, 224, 3
 MEAN_PIXEL = np.array([104., 117., 123.]).reshape((1,1,3))
 BATCH_SIZE = 16
-NUM_CLASSES = 42  #DONE
+NUM_CLASSES = 43  #DONE
 
 def load_data(src_path):
     # under train/val/test dirs, each class is a folder with numerical numbers
@@ -50,8 +50,9 @@ def main():
     print 'Load test data:'
     X_test, Y_test = load_data(TEST_DIR)
     # DONE: get accuracy
-    model.evaluate(x=X_test, y=Y_test, batch_size=BATCH_SIZE, verbose=1)
-
+    score = model.evaluate(x=X_test, y=Y_test, batch_size=BATCH_SIZE, verbose=1)
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
     return
 
 

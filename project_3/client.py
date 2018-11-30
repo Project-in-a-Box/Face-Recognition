@@ -55,7 +55,7 @@ def request_from_server(img):
 def main():
     # 1. Start running the camera.
     # TODO: Initialize face detector
-    
+    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
     
     # Initialize camera and update parameters
     camera = PiCamera()
@@ -79,7 +79,8 @@ def main():
 
         # TODO: Use face detector to get faces.
         # Be sure to save the faces in a variable called 'faces'
-
+        faces = face_cascade.detectMultiScale(img, 1.2, 5)
+        
         for (x, y, w, h) in faces:
             print('==================================')
             print('Face detected!')
