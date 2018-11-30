@@ -13,13 +13,12 @@ import glob, os, cv2
 from keras.models import Model, load_model
 from keras.utils.np_utils import to_categorical
 
-TEST_DIR = '../data/test'  #TODO
-MODEL_PATH = '/home/ec2-user/vgg16_new_version_weights.h5' #TODO
+TEST_DIR = '../Data/Test'  #DONE
+MODEL_PATH = '/home/ubuntu/project_3/vgg16_Face_Reg.h5  ' #DONE
 IMG_H, IMG_W, NUM_CHANNELS = 224, 224, 3
 MEAN_PIXEL = np.array([104., 117., 123.]).reshape((1,1,3))
 BATCH_SIZE = 16
-NUM_CLASSES = 20  #TODO
-
+NUM_CLASSES = 42  #DONE
 
 def load_data(src_path):
     # under train/val/test dirs, each class is a folder with numerical numbers
@@ -44,12 +43,14 @@ def load_data(src_path):
 
 
 def main():
-    # TODO: load model
+    # DONE: load model
+    model = load_model(MODEL_PATH)
 
     # compute test accuracy
     print 'Load test data:'
     X_test, Y_test = load_data(TEST_DIR)
-    # TODO: get accuracy
+    # DONE: get accuracy
+    model.evaluate(x=X_test, y=Y_test, batch_size=BATCH_SIZE, verbose=1)
 
     return
 
