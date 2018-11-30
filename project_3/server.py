@@ -21,11 +21,13 @@ from keras.models import load_model
 from flask import Flask, request, jsonify, abort, send_from_directory
 from flask_cors import CORS
 
+MODEL_PATH = 'vgg16_Face_Reg.h5'
+
 app = Flask(__name__)
 CORS(app)                               # Allow CORS (Cross Origin Requests)
 
-# TODO: Load the model from the weights file.
-MODEL = #_______
+# DONE: Load the model from the weights file.
+MODEL = load_model(MODEL_PATH)
 
 
 def classify(path_to_image):
@@ -41,38 +43,38 @@ def classify(path_to_image):
     # Used for VGG16 to normalize the images
     mean_pixel = np.array([104., 117., 123.]).reshape((1, 1, 3))
 
-    # TODO: Use opencv to read and resize image to standard dimensions
-    img = #______
-    resized_img = #______
+    # DONE: Use opencv to read and resize image to standard dimensions
+    img = cv2.imread(path_to_image, 1)
+    resized_img = cv2.resize(img, (img_width, img_height))
     
-    # TODO: Subtract mean_pixel from the image store the new image in 
+    # DONE: Subtract mean_pixel from the image store the new image in 
     # a variable called 'normalized_image'
-    normalized_image = #________
+    normalized_image = resized_img - mean_pixel
     
     # Turns image shape of (2,) to (1,2)
     image_to_be_classified = np.expand_dims(normalized_image, axis=0)
     
 
-    # TODO: Use network to predict the 'image_to_be_classified' and
+    # DONE: Use network to predict the 'image_to_be_classified' and
     # get an array of prediction values
     # Note: MODEL.predict() returns an array of arrays ie. [[classes]]
-    predictions = #______
+    predictions = MODEL.predict(image_to_be_classified)
     
-    # TODO: Get the predicted label which is defined as follows:
+    # DONE: Get the predicted label which is defined as follows:
     # Label = the index of the largest value in the prediction array
     # This label is a number, which corresponds to the same number you 
     # give to the folder when you organized data
     # Hint: np.argmax
-    label = #________
+    label = np.argmax(predictions)
     
     
-    # TODO: Calculate confidence according to the following metric:
+    # DONE: Calculate confidence according to the following metric:
     # Confidence = prediction_value / sum(all_prediction_values)
     # Be sure to call your confidence value 'conf'
     # Hint: np.sum()
-    label_value = #_______
-    total = #_________
-    conf = #__________
+    label_value = predictions[label]
+    total = np.sum(predictions)
+    conf = label_value/total
 
     
     prediction = {'label': str(label),
@@ -161,7 +163,7 @@ def predict():
     with open(temp_image_name, 'wb') as fh:
         fh.write(image_data.decode('base64'))
     
-    # TODO: Call classify to predict the image and save the result to a 
+    # DONE: Call classify to predict the image and save the result to a 
     # variable called 'prediction'
     prediction = classify(temp_image_name)
 

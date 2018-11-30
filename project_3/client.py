@@ -16,8 +16,8 @@ from picamera.array import PiRGBArray
 # Font that will be written on the image
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 
-# TODO: Declare path to face cascade
-CASCADE_PATH = ""
+# DONE: Declare path to face cascade
+CASCADE_PATH = "haarcascade_frontalface_default.xml"
     
 def request_from_server(img):
     """ 
@@ -27,13 +27,14 @@ def request_from_server(img):
     :returns: Returns a dictionary containing label and cofidence.
     """
     # URL or PUBLIC DNS to your server
-    URL = ""
+    URL = "ec2-35-163-218-170.us-west-2.compute.amazonaws.com:8080"
     
     # File name so that it can be temporarily stored.
     temp_image_name = 'temp.jpg'
     
-    # TODO: Save image with name stored in 'temp_image_name'
-    
+    # DONE: Save image with name stored in 'temp_image_name'
+    with open(temp_image_name, 'wb') as fh:
+        fh.write(image_data.decode('base64'))
 
     # Reopen image and encode in base64
     image = open(temp_image_name, 'rb') #open binary file in read mode
@@ -54,8 +55,8 @@ def request_from_server(img):
 
 def main():
     # 1. Start running the camera.
-    # TODO: Initialize face detector
-    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+    # DONE: Initialize face detector
+    face_cascade = cv2.CascadeClassifier(CASCADE_PATH)
     
     # Initialize camera and update parameters
     camera = PiCamera()
@@ -77,7 +78,7 @@ def main():
         frame = frame.array
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        # TODO: Use face detector to get faces.
+        # DONE: Use face detector to get faces.
         # Be sure to save the faces in a variable called 'faces'
         faces = face_cascade.detectMultiScale(img, 1.2, 5)
         
@@ -94,18 +95,18 @@ def main():
             if(answer == 1):
                 print('Let\'s see who you are...')
                 
-                # TODO: Get label and confidence using request_from_server
-                
+                # DONE: Get label and confidence using request_from_server
+                prediction = request_from_server(face)
                 
                 print('New result found!')
 
-                # TODO: Display label on face image
+                # DONE: Display label on face image
                 # Save what you want to write on image to 'result_to_display'
                 # [OPTIONAL]: At this point you only have a number to display, 
                 # you could add some extra code to convert your number to a 
                 # name
 
-                cv2.putText(frame, str(result_to_display), (10, 30), FONT, 1, (0, 255, 0), 2)
+                cv2.putText(frame, str(prediction), (10, 30), FONT, 1, (0, 255, 0), 2)
                 cv2.imshow('Face Image for Classification', frame)
                 cv2.waitKey()
                 break
