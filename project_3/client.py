@@ -27,7 +27,7 @@ def request_from_server(img):
     :returns: Returns a dictionary containing label and cofidence.
     """
     # URL or PUBLIC DNS to your server
-    URL = "ec2-35-163-218-170.us-west-2.compute.amazonaws.com:8080"
+    URL = "ec2-54-191-72-168.us-west-2.compute.amazonaws.com:8080"
     
     # File name so that it can be temporarily stored.
     temp_image_name = 'temp.jpg'
